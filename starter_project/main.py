@@ -60,6 +60,36 @@ forest_model.fit(X_train, y_train)
 preds_val = forest_model.predict(X_val)
 print(f'Random forest MAE: {mean_absolute_error(y_val, preds_val)}')
 
+##########
+# Handling missing data
+##########
+# Function to generate score based on input data
+def score_dataset(X_train, X_test, y_train, y_test):
+    model = RandomForestRegressor()
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    return mean_absolute_error(y_test, predictions)
+
+# Option 1: Drop columns with missing values
+# Set up data
+data_targets = data['SalePrice']
+data_predictors = data.drop(['SalePrice'], axis=1)
+data_numeric_predictors = data.select_dtypes(exclude=['object'])
+X_train, X_test, y_train, y_test = train_test_split(data_numeric_predictors, data_targets,
+                                                    train_size=0.7, test_size=0.3,
+                                                    random_state=0)
+
+# Pull out rows with missing data
+cols_with_missing_data = [col for col in X_train.columns if X_train[col].isnull().any()]
+X_train_reduced = X_train.drop(cols_with_missing_data, axis=1)
+X_test_reduced = X_test.drop(cols_with_missing_data, axis=1)
+
+# Run the test
+score = score_dataset(X_train_reduced, X_test_reduced, y_train, y_test)
+print(f'Mean absolute error from dropping columns with missing values: {score}')
+
+
+
 
 
 
