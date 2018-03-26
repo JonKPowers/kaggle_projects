@@ -3,6 +3,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import Imputer
 import matplotlib.pyplot as plt
 
 
@@ -70,16 +71,15 @@ def score_dataset(X_train, X_test, y_train, y_test):
     predictions = model.predict(X_test)
     return mean_absolute_error(y_test, predictions)
 
-# Option 1: Drop columns with missing values
 # Set up data
 data_targets = data['SalePrice']
 data_predictors = data.drop(['SalePrice'], axis=1)
-data_numeric_predictors = data.select_dtypes(exclude=['object'])
+data_numeric_predictors = data.select_dtypes(exclude=['object'])        # Not handling categoricals yet
 X_train, X_test, y_train, y_test = train_test_split(data_numeric_predictors, data_targets,
                                                     train_size=0.7, test_size=0.3,
                                                     random_state=0)
 
-# Pull out rows with missing data
+# Option 1: Drop columns with missing values
 cols_with_missing_data = [col for col in X_train.columns if X_train[col].isnull().any()]
 X_train_reduced = X_train.drop(cols_with_missing_data, axis=1)
 X_test_reduced = X_test.drop(cols_with_missing_data, axis=1)
@@ -88,9 +88,31 @@ X_test_reduced = X_test.drop(cols_with_missing_data, axis=1)
 score = score_dataset(X_train_reduced, X_test_reduced, y_train, y_test)
 print(f'Mean absolute error from dropping columns with missing values: {score}')
 
+# Option 2: Imputing missing values
+my_imputer = Imputer()
+X_train_imputed = my_imputer.fit_transform(X_train)
+X_test_imputed = my_imputer.transform(X_test)
+
+# Run the test
+score = score_dataset(X_train_imputed, X_test_imputed, y_train, y_test)
+print(f'Mean absolute error from imputing missing values: {score}')
+
+# Option 3: Extended Imputation--Add extra columns showing what what imputed
+
+X_train_imputed_plus = X_train.copy()
+X_test_imputed_plus = X_test.copy()
+
+cols_with_missing_data = [col for col in X_train_imputed_plus.columns if X_train_imputed_plus[col].isnull().any()]
+
+for col in cols_with_missing_data:
+    X_train_imputed_plus[col + '_was_missing'] = X_train_imputed_plus[col].isnull()
+    X_test_imputed_plus[col + '_was_missing'] = X_test_imputed_plus[col].isnull()
 
 
+my_imputer = Imputer()
+X_train_imputed_plus = my_imputer.fit_transform(X_train_imputed_plus)
+X_test_imputed_plus = my_imputer.transform(X_test_imputed_plus)
 
-
-
-
+# Run the test
+score = score_dataset(X_train_imputed_plus, X_test_imputed_plus, y_train, y_test)
+print(f'Mean absolute error from extended imputation of missing values: {score}')
