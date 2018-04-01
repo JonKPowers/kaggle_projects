@@ -27,5 +27,9 @@ day_of_month_earthquakes = day_of_month_earthquakes.dropna()
 sns.distplot(day_of_month_landslides, kde=False, bins=31)
 sns.distplot(day_of_month_earthquakes, kde=False, bins=31)
 
+##########
+# To Do
+##########
+# For an extra challenge, you can try try parsing the column `Last Known Eruption` from the `volcanos` dataframe. This column contains a mixture of text ("Unknown") and years both before the common era (BCE, also known as BC) and in the common era (CE, also known as AD).
 
 
